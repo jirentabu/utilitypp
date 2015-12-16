@@ -38,5 +38,14 @@ int main(int argc, const char * argv[]) {
     
     items = strings::split(str, std::string(","));
     
+    std::string u8str = "utf-8字符串儿";
+    std::cout << u8str << ", bytes = " << u8str.length()
+              << ", length = " << strings::length(u8str.c_str())
+              << ", substr 4:2 = " << strings::substr(u8str, 4, 2)
+              << ", substr 5:-1 = " << strings::substr(u8str, 5) << std::endl;
+    
+    std::wstring ucsstr = strings::unicode(u8str);
+    std::cout << u8str << ", lenght = " << ucsstr.length() << std::endl;
+    
     return 0;
 }

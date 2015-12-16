@@ -23,6 +23,7 @@
 
 namespace strings
 {
+    // format with streams
     typedef std::ostrstream fmt;
     
     inline std::string format(const char* fmt, ...)
@@ -149,6 +150,7 @@ namespace strings
         return str;
     }
     
+    
     inline std::string utf8(const wchar_t* src)
     {
         std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> utf16conv;
@@ -169,6 +171,62 @@ namespace strings
     inline std::wstring unicode(const std::string& src)
     {
         return unicode(src.c_str());
+    }
+    
+    inline int utf8_chart_bytes(const char c)
+    {
+        int n;
+        if      ((c & 0x80) == 0)    n = 1;
+        else if ((c & 0xE0) == 0xC0) n = 2;
+        else if ((c & 0xF0) == 0xE0) n = 3;
+        else if ((c & 0xF8) == 0xF0) n = 4;
+        else throw std::runtime_error("utf8_length: invalid UTF-8");
+        return n;
+    }
+    
+    inline size_t length(const char* utf8c)
+    {
+        size_t len = 0;
+        while (*utf8c) {
+            int n = utf8_chart_bytes(*utf8c);
+            utf8c += n;
+            len++;
+        }
+        return len;
+    }
+    
+    inline size_t length(const std::string& utf8str){
+        return length(utf8str.c_str());
+    }
+    
+    inline std::string substr(const std::string& str, int pos, int len = -1)
+    {
+        // skip to pos
+        auto first = str.begin();
+        for (;first != str.end() && pos;) {
+            int n = utf8_chart_bytes(*first);
+            if (first + n < str.end()) {
+                first += n;
+                pos--;
+            }else{
+                first = str.end();
+                pos = 0;
+            }
+        }
+        
+        auto last = len >= 0 ? first : str.end();
+        for (;last != str.end() && len > 0;) {
+            int n = utf8_chart_bytes(*last);
+            if (last + n < str.end()) {
+                last += n;
+                len--;
+            }else{
+                last = str.end();
+                break;
+            }
+        }
+        
+        return std::string(first, last);
     }
 }
 
